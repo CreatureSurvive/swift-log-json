@@ -1,0 +1,4 @@
+swift-log-json
+
+Version 0.0.1 (12/10/23)
+	* Initial Release
