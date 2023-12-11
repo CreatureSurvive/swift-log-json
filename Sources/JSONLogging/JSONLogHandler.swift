@@ -90,10 +90,14 @@ public struct JSONLogHandler: LogHandler {
 }
 
 public struct JSONLogEntry: Codable, Hashable {
-    let date: Date
-    let level: String
-    let category: String
-    let message: String
+    public let date: Date
+    public let level: String
+    public let category: String
+    public let message: String
+    
+    public var composedMessage: String {
+        "[\(date)] [\(level)] [\(category)] \(message)"
+    }
 }
 
 public extension Sequence where Element == JSONLogEntry {
