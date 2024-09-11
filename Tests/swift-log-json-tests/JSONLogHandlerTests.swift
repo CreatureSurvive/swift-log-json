@@ -182,6 +182,55 @@ final class JSONLogHandlerTests: XCTestCase, Utilities {
             }
         }
         
+        DispatchQueue.global().async {
+            for i in 1...5 {
+                DispatchQueue.global().async {
+                    logger.error("Test \(i) 1")
+                    logger.error("Test \(i) 2")
+                    logger.error("Test \(i) 3")
+                }
+            }
+        }
+        
+        DispatchQueue.global().async {
+            for i in 1...5 {
+                DispatchQueue.global().async {
+                    logger.error("Test \(i) 1")
+                    logger.error("Test \(i) 2")
+                    logger.error("Test \(i) 3")
+                }
+            }
+        }
+        
+        let _: [JSONLogEntry] = try .fromJSON(url: logFileURL)
+    }
+    
+    func testAsyncLogging() async throws {
+        let logFileURL = try getDocumentsDirectory().appendingPathComponent(logFileName)
+        
+        let logger = try JSONLogging.logger(label: "Thread", localFile: logFileURL)
+        
+        async let test1: () = withCheckedContinuation({ continuation in
+            logger.error("Test 1")
+            logger.error("Test 2")
+            logger.error("Test 3")
+            continuation.resume()
+        })
+        async let test2: () = withCheckedContinuation({ continuation in
+            logger.error("Test 1")
+            logger.error("Test 2")
+            logger.error("Test 3")
+            continuation.resume()
+        })
+        async let test3: () = withCheckedContinuation({ continuation in
+            logger.error("Test 1")
+            logger.error("Test 2")
+            logger.error("Test 3")
+            continuation.resume()
+        })
+        
+        _ = await (test1, test2, test3)
+        
         let _: [JSONLogEntry] = try .fromJSON(url: logFileURL)
     }
     

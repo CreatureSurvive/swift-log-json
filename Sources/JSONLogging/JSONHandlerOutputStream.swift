@@ -17,7 +17,7 @@ public struct JSONHandlerOutputStream: TextOutputStream {
         case manual
     }
     
-    private let queue = DispatchQueue(label: "JSONFileHandlerOutputStream.queue")
+    private let queue = DispatchQueue(label: "JSONFileHandlerOutputStream.queue", attributes: .concurrent)
     private let fileHandle: FileHandle
     private let encoder = JSONEncoder()
 
@@ -51,7 +51,7 @@ public struct JSONHandlerOutputStream: TextOutputStream {
     /// append the string to the log file
     public func write(_ string: String) {
         if let data = string.data(using: .utf8) {
-            queue.sync {
+            queue.sync(flags: .barrier) {
                 defer {
                     if flushMode == .always {
                         try? fileHandle._synchronize()
@@ -68,7 +68,7 @@ public struct JSONHandlerOutputStream: TextOutputStream {
         if let data = try? encoder.encode(log),
            let string = String(data: data, encoding: .utf8) {
             
-            queue.sync {
+            queue.sync(flags: .barrier) {
                 defer {
                     if flushMode == .always {
                         try? fileHandle._synchronize()
@@ -90,7 +90,7 @@ public struct JSONHandlerOutputStream: TextOutputStream {
     public func clear() {
         if let contents = try? encoder.encode([] as [JSONLogEntry]) {
             
-            queue.sync {
+            queue.sync(flags: .barrier) {
                 defer {
                     if flushMode == .always {
                         try? fileHandle._synchronize()
@@ -109,7 +109,7 @@ public struct JSONHandlerOutputStream: TextOutputStream {
         if let logs: [JSONLogEntry] = try? .fromJSON(url: url),
            (logs.count - maxEntries) > 0 {
             
-            queue.sync {
+            queue.sync(flags: .barrier) {
                 defer {
                     if flushMode == .always {
                         try? fileHandle._synchronize()
@@ -125,14 +125,14 @@ public struct JSONHandlerOutputStream: TextOutputStream {
     
     /// flush the fileHandle available data to the log file
     private func flush() {
-        queue.sync {
+        queue.sync(flags: .barrier) {
             try? fileHandle._synchronize()
         }
     }
     
     /// flush the fileHandle available data to the log file and close the file handle
     private func close() {
-        queue.sync {
+        queue.sync(flags: .barrier) {
             try? fileHandle._synchronize()
             try? fileHandle._close()
         }
